@@ -16,27 +16,6 @@ export function latLngToVector3(
   return new THREE.Vector3(x, y, z);
 }
 
-export function createGlobeArcCurve(
-  startLat: number,
-  startLng: number,
-  endLat: number,
-  endLng: number,
-  globeRadius: number,
-  altitudeRatio = 0.2,
-): THREE.QuadraticBezierCurve3 {
-  const start = latLngToVector3(startLat, startLng, globeRadius);
-  const end = latLngToVector3(endLat, endLng, globeRadius);
-  const midLat = (startLat + endLat) / 2;
-  const midLng = (startLng + endLng) / 2;
-  const mid = latLngToVector3(
-    midLat,
-    midLng,
-    globeRadius * (1 + altitudeRatio),
-  );
-
-  return new THREE.QuadraticBezierCurve3(start, mid, end);
-}
-
 export function createGlobeArcCurveAccurate(
   startLat: number,
   startLng: number,
@@ -53,14 +32,8 @@ export function createGlobeArcCurveAccurate(
 
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
-
-    // Spherical linear interpolation
     const interpolated = new THREE.Vector3().copy(start).lerp(end, t).normalize();
-
-    // Great arc altitude bump (sine shaped)
     const altitude = Math.sin(Math.PI * t) * altitudeRatio;
-
-    // Final position = direction * (radius + altitude bump)
     const final = interpolated.multiplyScalar(globeRadius * (1 + altitude));
     points.push(final);
   }
@@ -72,7 +45,7 @@ export function addMarker(lat: number, lng: number, label: string) {
   const pos = latLngToVector3(lat, lng, Globe.getGlobeRadius() * 1.01);
 
   const marker = new THREE.Mesh(
-    new THREE.SphereGeometry(1.2, 8, 8),
+    new THREE.SphereGeometry(0.2, 20, 8),
     new THREE.MeshBasicMaterial({ color: 0xff0000 }),
   );
   marker.position.copy(pos);

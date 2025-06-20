@@ -5,10 +5,10 @@ import {TrackballControls} from "three/examples/jsm/controls/TrackballControls";
 
 export const Globe = new ThreeGlobe()
   .globeImageUrl(
-    "https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg",
+    "./world.200412.3x21600x10800.jpg",
   )
   .bumpImageUrl(
-    "https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png",
+    "./gebco_08_rev_elev_21600x10800.png",
   );
 
 export const Clouds = new THREE.Mesh(

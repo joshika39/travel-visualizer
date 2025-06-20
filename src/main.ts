@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {addMarker, createArcPathWithAltitude, createGlobeArcCurve, createGlobeArcCurveAccurate} from "@/utils/3d";
+import {addMarker, createGlobeArcCurveAccurate} from "@/utils/3d";
 import {CLOUDS_IMG_URL, CLOUDS_ROTATION_SPEED} from "@/utils/constants";
 import {camera, Clouds, Globe, renderer, scene, tbControls} from "@/objects";
 
@@ -10,10 +10,11 @@ new THREE.TextureLoader().load(CLOUDS_IMG_URL, (cloudsTexture) => {
   });
 });
 
-const BUD = { lat: 47.473930228244406, lng: 19.07326116987136 };
-const NGO = { lat: 35.22022293239852, lng: 136.86926614053183 };
+const START = { lat: 47.473930228244406, lng: 19.07326116987136, name: "Budapest", country: "Hungary" };
+//const DEST = { lat: 35.22022293239852, lng: 136.86926614053183, name: "Nagoya", country: "Japan" };
+const DEST = { lat: 55.618265392816504, lng: 12.648949173439565, name: "Copenhagen", country: "Denmark" };
 
-const arcAltitude = 0.2;
+const arcAltitude = 0.01;
 
 
 (function rotateClouds() {
@@ -30,27 +31,32 @@ window.addEventListener("resize", () => {
 fetch("./ne_110m_admin_0_countries.geojson")
   .then((res) => res.json())
   .then((countries) => {
+    const targets = [
+      START.country,
+      DEST.country,
+    ]
+
     // @ts-ignore
     const filteredFeatures = countries.features.filter((f) =>
-      ["Hungary", "Japan"].includes(f.properties.ADMIN),
+      targets.includes(f.properties.ADMIN),
     );
 
     Globe.polygonsData(filteredFeatures)
-      .polygonCapColor(() => "rgba(200, 0, 0, 0.7)")
-      .polygonSideColor(() => "rgba(0, 200, 0, 0.1)")
+      .polygonCapColor(() => "rgba(133,200,0,0.44)")
+      .polygonSideColor(() => "rgba(0,200,0,0.06)")
       .polygonStrokeColor(() => "#111");
   });
 
 const arcCurve = createGlobeArcCurveAccurate(
-  BUD.lat,
-  BUD.lng,
-  NGO.lat,
-  NGO.lng,
+  START.lat,
+  START.lng,
+  DEST.lat,
+  DEST.lng,
   Globe.getGlobeRadius(),
   arcAltitude
 );
 
-const planeGeometry = new THREE.ConeGeometry(2, 6, 8);
+const planeGeometry = new THREE.ConeGeometry(1, 2, 3);
 const planeMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
 const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
 planeMesh.rotateX(Math.PI / 2);
@@ -84,15 +90,15 @@ function updatePlane() {
 
 Globe.arcsData([
   {
-    startLat: BUD.lat,
-    startLng: BUD.lng,
-    endLat: NGO.lat,
-    endLng: NGO.lng,
+    startLat: START.lat,
+    startLng: START.lng,
+    endLat: DEST.lat,
+    endLng: DEST.lng,
   },
 ])
   .arcColor(() => "#ff9900")
   .arcAltitude(arcAltitude)
-  .arcStroke(0.5);
+  .arcStroke(0.2);
 
 function animate() {
   tbControls.update();
@@ -101,7 +107,7 @@ function animate() {
   requestAnimationFrame(animate);
 }
 
-addMarker(35.6895, 139.6917, "Tokyo");
-addMarker(47.4979, 19.0402, "Budapest");
+addMarker(START.lat, START.lng, START.name);
+addMarker(DEST.lat, DEST.lng, DEST.name);
 
 animate();
