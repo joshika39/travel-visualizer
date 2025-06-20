@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {addMarker, createGlobeArcCurve} from "@/utils/3d";
+import {addMarker, createArcPathWithAltitude, createGlobeArcCurve, createGlobeArcCurveAccurate} from "@/utils/3d";
 import {CLOUDS_IMG_URL, CLOUDS_ROTATION_SPEED} from "@/utils/constants";
 import {camera, Clouds, Globe, renderer, scene, tbControls} from "@/objects";
 
@@ -9,6 +9,11 @@ new THREE.TextureLoader().load(CLOUDS_IMG_URL, (cloudsTexture) => {
     transparent: true,
   });
 });
+
+const BUD = { lat: 47.473930228244406, lng: 19.07326116987136 };
+const NGO = { lat: 35.22022293239852, lng: 136.86926614053183 };
+
+const arcAltitude = 0.2;
 
 
 (function rotateClouds() {
@@ -25,6 +30,7 @@ window.addEventListener("resize", () => {
 fetch("./ne_110m_admin_0_countries.geojson")
   .then((res) => res.json())
   .then((countries) => {
+    // @ts-ignore
     const filteredFeatures = countries.features.filter((f) =>
       ["Hungary", "Japan"].includes(f.properties.ADMIN),
     );
@@ -35,23 +41,19 @@ fetch("./ne_110m_admin_0_countries.geojson")
       .polygonStrokeColor(() => "#111");
   });
 
-const BUD = { lat: 47.473930228244406, lng: 19.07326116987136 };
-const NGO = { lat: 35.22022293239852, lng: 136.86926614053183 };
-
-const arcAltitude = 0.2;
-const arcCurve = createGlobeArcCurve(
+const arcCurve = createGlobeArcCurveAccurate(
   BUD.lat,
   BUD.lng,
   NGO.lat,
   NGO.lng,
   Globe.getGlobeRadius(),
-  arcAltitude,
+  arcAltitude
 );
 
 const planeGeometry = new THREE.ConeGeometry(2, 6, 8);
 const planeMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
 const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
-planeMesh.rotateX(Math.PI / 2); // face forward
+planeMesh.rotateX(Math.PI / 2);
 scene.add(planeMesh);
 
 let arcProgress = 0;
@@ -92,15 +94,14 @@ Globe.arcsData([
   .arcAltitude(arcAltitude)
   .arcStroke(0.5);
 
-addMarker(0, 0, "Gulf of Guinea");
-addMarker(35.6895, 139.6917, "Tokyo");
-addMarker(47.4979, 19.0402, "Budapest");
-
 function animate() {
   tbControls.update();
   renderer.render(scene, camera);
   updatePlane();
   requestAnimationFrame(animate);
 }
+
+addMarker(35.6895, 139.6917, "Tokyo");
+addMarker(47.4979, 19.0402, "Budapest");
 
 animate();

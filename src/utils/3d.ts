@@ -16,6 +16,58 @@ export function latLngToVector3(
   return new THREE.Vector3(x, y, z);
 }
 
+export function createGlobeArcCurve(
+  startLat: number,
+  startLng: number,
+  endLat: number,
+  endLng: number,
+  globeRadius: number,
+  altitudeRatio = 0.2,
+): THREE.QuadraticBezierCurve3 {
+  const start = latLngToVector3(startLat, startLng, globeRadius);
+  const end = latLngToVector3(endLat, endLng, globeRadius);
+  const midLat = (startLat + endLat) / 2;
+  const midLng = (startLng + endLng) / 2;
+  const mid = latLngToVector3(
+    midLat,
+    midLng,
+    globeRadius * (1 + altitudeRatio),
+  );
+
+  return new THREE.QuadraticBezierCurve3(start, mid, end);
+}
+
+export function createGlobeArcCurveAccurate(
+  startLat: number,
+  startLng: number,
+  endLat: number,
+  endLng: number,
+  globeRadius: number,
+  altitudeRatio = 0.2,
+  steps = 128
+): THREE.Curve<THREE.Vector3> {
+  const start = latLngToVector3(startLat, startLng, 1).normalize();
+  const end = latLngToVector3(endLat, endLng, 1).normalize();
+
+  const points: THREE.Vector3[] = [];
+
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+
+    // Spherical linear interpolation
+    const interpolated = new THREE.Vector3().copy(start).lerp(end, t).normalize();
+
+    // Great arc altitude bump (sine shaped)
+    const altitude = Math.sin(Math.PI * t) * altitudeRatio;
+
+    // Final position = direction * (radius + altitude bump)
+    const final = interpolated.multiplyScalar(globeRadius * (1 + altitude));
+    points.push(final);
+  }
+
+  return new THREE.CatmullRomCurve3(points);
+}
+
 export function addMarker(lat: number, lng: number, label: string) {
   const pos = latLngToVector3(lat, lng, Globe.getGlobeRadius() * 1.01);
 
@@ -42,25 +94,3 @@ export function addMarker(lat: number, lng: number, label: string) {
   );
   scene.add(sprite);
 }
-
-export function createGlobeArcCurve(
-  startLat: number,
-  startLng: number,
-  endLat: number,
-  endLng: number,
-  globeRadius: number,
-  altitudeRatio = 0.2,
-): THREE.QuadraticBezierCurve3 {
-  const start = latLngToVector3(startLat, startLng, globeRadius);
-  const end = latLngToVector3(endLat, endLng, globeRadius);
-  const midLat = (startLat + endLat) / 2;
-  const midLng = (startLng + endLng) / 2;
-  const mid = latLngToVector3(
-    midLat,
-    midLng,
-    globeRadius * (1 + altitudeRatio),
-  );
-
-  return new THREE.QuadraticBezierCurve3(start, mid, end);
-}
-
