@@ -2,6 +2,10 @@ import * as THREE from "three";
 import {addMarker, createGlobeArcCurveAccurate} from "@/utils/3d";
 import {CLOUDS_IMG_URL, CLOUDS_ROTATION_SPEED} from "@/utils/constants";
 import {camera, Clouds, Globe, renderer, scene, tbControls} from "@/objects";
+import countriesRaw from "@/assets/countries.json";
+import {GeoData} from "@/types";
+
+const countries: GeoData = countriesRaw as unknown as GeoData;
 
 new THREE.TextureLoader().load(CLOUDS_IMG_URL, (cloudsTexture) => {
   Clouds.material = new THREE.MeshPhongMaterial({
@@ -10,9 +14,8 @@ new THREE.TextureLoader().load(CLOUDS_IMG_URL, (cloudsTexture) => {
   });
 });
 
-const START = { lat: 47.473930228244406, lng: 19.07326116987136, name: "Budapest", country: "Hungary" };
-//const DEST = { lat: 35.22022293239852, lng: 136.86926614053183, name: "Nagoya", country: "Japan" };
-const DEST = { lat: 55.618265392816504, lng: 12.648949173439565, name: "Copenhagen", country: "Denmark" };
+const START = {lat: 47.473930228244406, lng: 19.07326116987136, name: "Budapest", country: "Hungary"};
+const DEST = {lat: 55.618265392816504, lng: 12.648949173439565, name: "Copenhagen", country: "Denmark"};
 
 const arcAltitude = 0.01;
 
@@ -28,24 +31,21 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-fetch("./ne_110m_admin_0_countries.geojson")
-  .then((res) => res.json())
-  .then((countries) => {
-    const targets = [
-      START.country,
-      DEST.country,
-    ]
+const targets = [
+  START.country,
+  DEST.country,
+]
 
-    // @ts-ignore
-    const filteredFeatures = countries.features.filter((f) =>
-      targets.includes(f.properties.ADMIN),
-    );
+if (countries && countries.features) {
+  const filteredFeatures = countries.features.filter((f) =>
+    targets.includes(f.properties.ADMIN),
+  );
 
-    Globe.polygonsData(filteredFeatures)
-      .polygonCapColor(() => "rgba(133,200,0,0.44)")
-      .polygonSideColor(() => "rgba(0,200,0,0.06)")
-      .polygonStrokeColor(() => "#111");
-  });
+  Globe.polygonsData(filteredFeatures)
+    .polygonCapColor(() => "rgba(133,200,0,0.44)")
+    .polygonSideColor(() => "rgba(0,200,0,0.06)")
+    .polygonStrokeColor(() => "#111");
+}
 
 const arcCurve = createGlobeArcCurveAccurate(
   START.lat,
@@ -57,7 +57,7 @@ const arcCurve = createGlobeArcCurveAccurate(
 );
 
 const planeGeometry = new THREE.ConeGeometry(1, 2, 3);
-const planeMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+const planeMaterial = new THREE.MeshPhongMaterial({color: 0xffffff});
 const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
 planeMesh.rotateX(Math.PI / 2);
 scene.add(planeMesh);

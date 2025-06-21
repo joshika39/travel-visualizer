@@ -3,12 +3,22 @@ import * as THREE from "three";
 import {CLOUDS_ALT} from "@/utils/constants";
 import {TrackballControls} from "three/examples/jsm/controls/TrackballControls";
 
+const globe = {
+  dev: '//cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg',
+  prod: '/assets/world-21600x10800.jpg',
+}
+
+const bump = {
+  dev: '//cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png',
+  prod: '/assets/topology-21600x10800.png',
+}
+
 export const Globe = new ThreeGlobe()
   .globeImageUrl(
-    "./world.200412.3x21600x10800.jpg",
+    import.meta.env.DEV ? globe.dev : globe.prod,
   )
   .bumpImageUrl(
-    "./gebco_08_rev_elev_21600x10800.png",
+    import.meta.env.DEV ? bump.dev : bump.prod,
   );
 
 export const Clouds = new THREE.Mesh(
