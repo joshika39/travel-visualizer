@@ -1,0 +1,21 @@
+node_modules/
+# Ignore build artifacts
+coverage/
+# Ignore logs
+logs/
+# Ignore environment files
+.env
+
+# Ignore Dockerfile and docker-compose files
+Dockerfile
+docker-compose.yml
+# Ignore IDE and editor specific files
+.vscode/
+.idea/
+
+# Ignore OS generated files
+.DS_Store
+# Ignore npm debug log
+npm-debug.log
+# Ignore pnpm lock file
+pnpm-lock.yaml

@@ -14,10 +14,25 @@
         width: 100vw;
         height: 100vh;
       }
+      #loader {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        font-size: 1.5rem;
+      }
     </style>
   </head>
   <body>
-    <div id="globeViz"></div>
+  <div id="loader">Loading globe...</div>
+  <div id="globeViz"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

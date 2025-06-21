@@ -1,6 +1,5 @@
 import ThreeGlobe from "three-globe";
 import * as THREE from "three";
-import {CLOUDS_ALT} from "@/utils/constants";
 import {TrackballControls} from "three/examples/jsm/controls/TrackballControls";
 
 const globe = {
@@ -13,17 +12,36 @@ const bump = {
   prod: '/assets/topology-21600x10800.png',
 }
 
-export const Globe = new ThreeGlobe()
-  .globeImageUrl(
-    import.meta.env.DEV ? globe.dev : globe.prod,
-  )
-  .bumpImageUrl(
-    import.meta.env.DEV ? bump.dev : bump.prod,
-  );
+const clouds = "/assets/clouds.png";
+
+export const Globe = new ThreeGlobe();
 
 export const Clouds = new THREE.Mesh(
-  new THREE.SphereGeometry(Globe.getGlobeRadius() * (1 + CLOUDS_ALT), 75, 75),
+  new THREE.SphereGeometry(Globe.getGlobeRadius() * (1 + 0.004), 75, 75)
 );
+
+function loadTextureAsync(url: string): Promise<THREE.Texture> {
+  return new Promise((resolve, reject) => {
+    new THREE.TextureLoader().load(url, resolve, undefined, reject);
+  });
+}
+
+await Promise.all([
+  loadTextureAsync(import.meta.env.DEV ? globe.dev : globe.prod).then(texture =>
+    Globe.globeImageUrl(texture.image.src)
+  ),
+  loadTextureAsync(import.meta.env.DEV ? bump.dev : bump.prod).then(texture =>
+    Globe.bumpImageUrl(texture.image.src)
+  ),
+  loadTextureAsync(clouds).then(texture => {
+    Clouds.material = new THREE.MeshPhongMaterial({
+      map: texture,
+      transparent: true,
+    });
+  }),
+]);
+
+document.getElementById("loader")?.remove();
 
 Globe.add(Clouds);
 

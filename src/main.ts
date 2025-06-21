@@ -1,19 +1,12 @@
 import * as THREE from "three";
 import {addMarker, createGlobeArcCurveAccurate} from "@/utils/3d";
-import {CLOUDS_IMG_URL, CLOUDS_ROTATION_SPEED} from "@/utils/constants";
 import {camera, Clouds, Globe, renderer, scene, tbControls} from "@/objects";
 import countriesRaw from "@/assets/countries.json";
 import {GeoData} from "@/types";
 
 const countries: GeoData = countriesRaw as unknown as GeoData;
 
-new THREE.TextureLoader().load(CLOUDS_IMG_URL, (cloudsTexture) => {
-  Clouds.material = new THREE.MeshPhongMaterial({
-    map: cloudsTexture,
-    transparent: true,
-  });
-});
-
+export const CLOUDS_ROTATION_SPEED = -0.006;
 const START = {lat: 47.473930228244406, lng: 19.07326116987136, name: "Budapest", country: "Hungary"};
 const DEST = {lat: 55.618265392816504, lng: 12.648949173439565, name: "Copenhagen", country: "Denmark"};
 
