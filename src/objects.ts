@@ -26,20 +26,24 @@ function loadTextureAsync(url: string): Promise<THREE.Texture> {
   });
 }
 
-await Promise.all([
-  loadTextureAsync(import.meta.env.DEV ? globe.dev : globe.prod).then(texture =>
-    Globe.globeImageUrl(texture.image.src)
-  ),
-  loadTextureAsync(import.meta.env.DEV ? bump.dev : bump.prod).then(texture =>
-    Globe.bumpImageUrl(texture.image.src)
-  ),
-  loadTextureAsync(clouds).then(texture => {
-    Clouds.material = new THREE.MeshPhongMaterial({
-      map: texture,
-      transparent: true,
-    });
-  }),
-]);
+async function init() {
+  await Promise.all([
+    loadTextureAsync(import.meta.env.DEV ? globe.dev : globe.prod).then(texture =>
+      Globe.globeImageUrl(texture.image.src)
+    ),
+    loadTextureAsync(import.meta.env.DEV ? bump.dev : bump.prod).then(texture =>
+      Globe.bumpImageUrl(texture.image.src)
+    ),
+    loadTextureAsync(clouds).then(texture => {
+      Clouds.material = new THREE.MeshPhongMaterial({
+        map: texture,
+        transparent: true,
+      });
+    }),
+  ]);
+}
+
+init().catch(console.error);
 
 document.getElementById("loader")?.remove();
 
