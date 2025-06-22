@@ -7,6 +7,7 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 import {getAirport} from "@/utils/airports";
 
 const countries: GeoData = countriesRaw as unknown as GeoData;
+let controlsEnabled = true;
 
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -24,20 +25,43 @@ loader.load('/assets/plane.glb', (gltf) => {
   scene.add(planeModel);
 });
 
-document.getElementById("plot-flight")?.addEventListener("click", () => {
-  const fromCode = (document.getElementById("from-iata") as HTMLInputElement).value.trim();
-  const toCode = (document.getElementById("to-iata") as HTMLInputElement).value.trim();
+const inputForm = document.getElementById("airport-form");
+if (inputForm) {
+  inputForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const fromCode = (document.getElementById("from-iata") as HTMLInputElement).value.trim();
+    const toCode = (document.getElementById("to-iata") as HTMLInputElement).value.trim();
 
-  const from = getAirport(fromCode);
-  const to = getAirport(toCode);
+    const from = getAirport(fromCode);
+    const to = getAirport(toCode);
 
-  if (!from || !to) {
-    alert("Invalid IATA code(s)");
-    return;
-  }
+    if (!from || !to) {
+      const errorMessageElement = document.getElementById("error-message");
+      if (errorMessageElement) {
+        errorMessageElement.textContent = "Invalid IATA code(s)";
+        errorMessageElement.style.display = "block";
+      }
+      return;
+    }
 
-  updateFlight(from, to);
-});
+    const errorMessageElement = document.getElementById("error-message");
+    if (errorMessageElement) {
+      errorMessageElement.textContent = "";
+      errorMessageElement.style.display = "none";
+    }
+
+    updateFlight(from, to);
+  });
+
+  inputForm?.addEventListener("mouseenter", () => controlsEnabled = false);
+  inputForm?.addEventListener("mouseleave", () => controlsEnabled = true);
+
+  inputForm.querySelectorAll("input, button").forEach((el) => {
+    el.addEventListener("focus", () => controlsEnabled = false);
+    el.addEventListener("blur", () => controlsEnabled = true);
+  });
+}
+
 
 let arcCurve: THREE.Curve<THREE.Vector3> | null = null;
 
@@ -65,7 +89,15 @@ function updateFlight(from: Airport, to: Airport) {
       .polygonAltitude(() => 0.001);
   }
 
-  scene.children = scene.children.filter(child => !(child instanceof THREE.Mesh && child.geometry.type === 'SphereGeometry'));
+  scene.children.forEach(child => {
+    if (child instanceof THREE.Mesh && child.geometry.type === 'SphereGeometry') {
+      scene.remove(child);
+      child.geometry.dispose();
+      if (child.material instanceof THREE.Material) {
+        child.material.dispose();
+      }
+    }
+  });
 
   addMarker(from.lat, from.lng);
   addMarker(to.lat, to.lng);
@@ -91,7 +123,10 @@ const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
 
-  flyControls.update(clock.getDelta());
+  if (controlsEnabled) {
+    flyControls.update(clock.getDelta());
+  }
+
   renderer.render(scene, camera);
   updatePlane();
 }

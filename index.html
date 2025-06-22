@@ -34,13 +34,14 @@
 </head>
 <body>
 <div id="loader">Loading globe...</div>
-<div id="airport-form" style="position: absolute; top: 10px; left: 10px; z-index: 1;">
+<form id="airport-form" style="position: absolute; top: 10px; left: 10px; z-index: 1;">
     <label for="from-iata">From:</label>
     <input id="from-iata" placeholder="From (e.g. BUD)"/>
     <label for="to-iata">To:</label>
     <input id="to-iata" placeholder="To (e.g. NGO)"/>
-    <button id="plot-flight">Plot Flight</button>
-</div>
+    <p id="error-message" style="color: red; display: none;"></p>
+    <button type="submit">Plot Flight</button>
+</form>
 <div id="globeViz"></div>
 <script type="module" src="/src/main.ts"></script>
 </body>
