@@ -3,6 +3,7 @@ import {addMarker, createGlobeArcCurveAccurate} from "@/utils/3d";
 import {camera, controls, Globe, renderer, scene} from "@/objects";
 import countriesRaw from "@/assets/countries.json";
 import {GeoData} from "@/types";
+import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
 const countries: GeoData = countriesRaw as unknown as GeoData;
 
@@ -42,15 +43,21 @@ const arcCurve = createGlobeArcCurveAccurate(
   arcAltitude
 );
 
-const planeGeometry = new THREE.ConeGeometry(1, 2, 3);
-const planeMaterial = new THREE.MeshPhongMaterial({color: 0xffffff});
-const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
-planeMesh.rotateX(Math.PI / 2);
-scene.add(planeMesh);
+const loader = new GLTFLoader();
+
+let planeModel: THREE.Object3D | null = null;
+
+loader.load('/assets/plane.glb', (gltf) => {
+  planeModel = gltf.scene;
+  planeModel.scale.set(3, 3, 3);
+  scene.add(planeModel);
+});
 
 let arcProgress = 0;
 const arcSpeed = 0.0012;
-const planeDummy = new THREE.Object3D();
+
+let t = 0; // between 0 and 1
+const speed = 0.001; // adjust as needed (how fast it moves)
 
 function updatePlane() {
   arcProgress = (arcProgress + arcSpeed) % 1;
@@ -67,11 +74,18 @@ function updatePlane() {
 
   const mat4 = new THREE.Matrix4();
   mat4.makeBasis(binormal, normal, correctedTangent);
-  planeDummy.quaternion.setFromRotationMatrix(mat4);
-  planeDummy.position.copy(position);
 
-  planeMesh.position.copy(position);
-  planeMesh.quaternion.copy(planeDummy.quaternion);
+  if (planeModel) {
+    // Move plane along curve
+    const position = arcCurve.getPointAt(t);
+    const tangent = arcCurve.getTangentAt(t);
+
+    planeModel.position.copy(position);
+    planeModel.lookAt(position.clone().add(tangent));
+
+    t += speed;
+    if (t > 1) t = 0; // loop or stop
+  }
 }
 
 const velocity = new THREE.Vector3();
