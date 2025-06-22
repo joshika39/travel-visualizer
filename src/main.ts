@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import {addMarker, createGlobeArcCurveAccurate} from "@/utils/3d";
-import {camera, controls, Globe, renderer, scene} from "@/objects";
+import {camera, controls, flyControls, Globe, handlePointerControl, renderer, scene, tbControls} from "@/objects";
 import countriesRaw from "@/assets/countries.json";
 import {GeoData} from "@/types";
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
@@ -53,30 +53,12 @@ loader.load('/assets/plane.glb', (gltf) => {
   scene.add(planeModel);
 });
 
-let arcProgress = 0;
-const arcSpeed = 0.0012;
 
-let t = 0; // between 0 and 1
-const speed = 0.001; // adjust as needed (how fast it moves)
+let t = 0;
+const speed = 0.001;
 
 function updatePlane() {
-  arcProgress = (arcProgress + arcSpeed) % 1;
-
-  const position = arcCurve.getPoint(arcProgress);
-  const tangent = arcCurve.getTangent(arcProgress);
-  const normal = position.clone().normalize();
-  const binormal = new THREE.Vector3()
-    .crossVectors(tangent, normal)
-    .normalize();
-  const correctedTangent = new THREE.Vector3()
-    .crossVectors(normal, binormal)
-    .normalize();
-
-  const mat4 = new THREE.Matrix4();
-  mat4.makeBasis(binormal, normal, correctedTangent);
-
   if (planeModel) {
-    // Move plane along curve
     const position = arcCurve.getPointAt(t);
     const tangent = arcCurve.getTangentAt(t);
 
@@ -84,47 +66,16 @@ function updatePlane() {
     planeModel.lookAt(position.clone().add(tangent));
 
     t += speed;
-    if (t > 1) t = 0; // loop or stop
+    if (t > 1) t = 0;
   }
 }
 
-const velocity = new THREE.Vector3();
-const direction = new THREE.Vector3();
 const clock = new THREE.Clock();
-
-const keys = new Set<string>();
-
-document.addEventListener("keydown", (e) => keys.add(e.code));
-document.addEventListener("keyup", (e) => keys.delete(e.code));
 
 function animate() {
   requestAnimationFrame(animate);
-  const delta = clock.getDelta();
-  const rollSpeed = Math.PI / 4;
 
-  if (controls.isLocked) {
-    if (keys.has("ShiftLeft") || keys.has("ShiftRight")) {
-      if (keys.has("KeyQ")) {
-        camera.rotateZ(rollSpeed * delta);
-      }
-      if (keys.has("KeyE")) {
-        camera.rotateZ(-rollSpeed * delta);
-      }
-    }
-
-    direction.set(
-      Number(keys.has("KeyD")) - Number(keys.has("KeyA")),
-      Number(keys.has("KeyE") && !keys.has("ShiftLeft") && !keys.has("ShiftRight")) -
-      Number(keys.has("KeyQ") && !keys.has("ShiftLeft") && !keys.has("ShiftRight")),
-      Number(keys.has("KeyS")) - Number(keys.has("KeyW"))
-    ).normalize();
-
-    velocity.copy(direction).multiplyScalar(200 * delta);
-    controls.moveRight(velocity.x);
-    controls.moveForward(velocity.z);
-    controls.object.position.y += velocity.y;
-  }
-
+  flyControls.update(clock.getDelta());
   renderer.render(scene, camera);
   updatePlane();
 }

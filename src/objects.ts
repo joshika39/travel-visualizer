@@ -56,6 +56,7 @@ init().catch(console.error);
 
 document.getElementById("loader")?.remove();
 
+// Uncomment the following line to enable clouds on the globe
 //Globe.add(Clouds);
 
 export const renderer = new THREE.WebGLRenderer();
@@ -79,15 +80,46 @@ tbControls.minDistance = 101;
 tbControls.rotateSpeed = 5;
 tbControls.zoomSpeed = 0.8;
 
-// NOTE: Currently unused, but can be used for free-flying camera controls
 export const flyControls = new FlyControls(camera, renderer.domElement);
 flyControls.movementSpeed = 100;
 flyControls.rollSpeed = Math.PI / 24;
 flyControls.autoForward = false;
 flyControls.dragToLook = true;
 
+// NOTE: Currently unused, but can be used for free-flying camera controls
 export const controls = new PointerLockControls(camera, renderer.domElement);
-scene.add(controls.object);
 
-document.addEventListener("click", () => controls.lock());
-export const move = { forward: false, backward: false, left: false, right: false, up: false, down: false };
+const rollSpeed = Math.PI / 4;
+
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+
+const keys = new Set<string>();
+
+document.addEventListener("keydown", (e) => keys.add(e.code));
+document.addEventListener("keyup", (e) => keys.delete(e.code));
+
+export const handlePointerControl = (delta: number) => {
+  if (controls.isLocked) {
+    if (keys.has("ShiftLeft") || keys.has("ShiftRight")) {
+      if (keys.has("KeyQ")) {
+        camera.rotateZ(rollSpeed * delta);
+      }
+      if (keys.has("KeyE")) {
+        camera.rotateZ(-rollSpeed * delta);
+      }
+    }
+
+    direction.set(
+      Number(keys.has("KeyD")) - Number(keys.has("KeyA")),
+      Number(keys.has("KeyE") && !keys.has("ShiftLeft") && !keys.has("ShiftRight")) -
+      Number(keys.has("KeyQ") && !keys.has("ShiftLeft") && !keys.has("ShiftRight")),
+      Number(keys.has("KeyS")) - Number(keys.has("KeyW"))
+    ).normalize();
+
+    velocity.copy(direction).multiplyScalar(200 * delta);
+    controls.moveRight(velocity.x);
+    controls.moveForward(velocity.z);
+    controls.object.position.y += velocity.y;
+  }
+}

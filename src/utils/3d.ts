@@ -42,7 +42,7 @@ export function createGlobeArcCurveAccurate(
 }
 
 export function addMarker(lat: number, lng: number, label?: string) {
-  const pos = latLngToVector3(lat, lng, Globe.getGlobeRadius() * 1.01);
+  const pos = latLngToVector3(lat, lng, Globe.getGlobeRadius());
 
   const marker = new THREE.Mesh(
     new THREE.SphereGeometry(0.2, 20, 8),
