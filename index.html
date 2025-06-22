@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <title>Bundled Globe</title>
+    <title>Travel Visualizer</title>
     <style>
       html,
       body {
@@ -30,11 +30,41 @@
         z-index: 10;
         font-size: 1.5rem;
       }
+
+      #airport-form {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      #airport-form input {
+        width: 200px;
+        padding: 5px;
+      }
+
+      #airport-form button {
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+
+      #airport-form label {
+        color: white;
+        font-weight: bold;
+      }
+
+      #error-message {
+        margin-top: 10px;
+        font-size: 0.9rem;
+      }
     </style>
 </head>
 <body>
 <div id="loader">Loading globe...</div>
-<form id="airport-form" style="position: absolute; top: 10px; left: 10px; z-index: 1;">
+<form id="airport-form">
     <label for="from-iata">From:</label>
     <input id="from-iata" placeholder="From (e.g. BUD)"/>
     <label for="to-iata">To:</label>
