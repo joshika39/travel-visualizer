@@ -41,7 +41,7 @@ export function createGlobeArcCurveAccurate(
   return new THREE.CatmullRomCurve3(points);
 }
 
-export function addMarker(lat: number, lng: number, label: string) {
+export function addMarker(lat: number, lng: number, label?: string) {
   const pos = latLngToVector3(lat, lng, Globe.getGlobeRadius() * 1.01);
 
   const marker = new THREE.Mesh(
@@ -51,11 +51,14 @@ export function addMarker(lat: number, lng: number, label: string) {
   marker.position.copy(pos);
   scene.add(marker);
 
+  if (!label) {
+    return;
+  }
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d")!;
-  context.font = "24px Arial";
+  context.font = "18px Arial";
   context.fillStyle = "white";
-  context.fillText(label, 0, 24);
+  context.fillText(label, 0, 18);
   const texture = new THREE.CanvasTexture(canvas);
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture }));
   sprite.scale.set(20, 10, 1);
@@ -63,7 +66,8 @@ export function addMarker(lat: number, lng: number, label: string) {
     pos
       .clone()
       .normalize()
-      .multiplyScalar(Globe.getGlobeRadius() * 1.05),
+      .multiplyScalar(Globe.getGlobeRadius())
+      .add(new THREE.Vector3(3, 0.1, 0)) // Slightly above the globe
   );
   scene.add(sprite);
 }

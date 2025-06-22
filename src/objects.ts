@@ -16,12 +16,18 @@ const bump = {
 }
 
 const clouds = "/assets/clouds.png";
+const CLOUDS_ROTATION_SPEED = -0.006;
 
 export const Globe = new ThreeGlobe();
 
 export const Clouds = new THREE.Mesh(
   new THREE.SphereGeometry(Globe.getGlobeRadius() * (1 + 0.004), 75, 75)
 );
+
+export function rotateClouds() {
+  Clouds.rotation.y += (CLOUDS_ROTATION_SPEED * Math.PI) / 180;
+  requestAnimationFrame(rotateClouds);
+}
 
 function loadTextureAsync(url: string): Promise<THREE.Texture> {
   return new Promise((resolve, reject) => {
@@ -50,7 +56,7 @@ init().catch(console.error);
 
 document.getElementById("loader")?.remove();
 
-Globe.add(Clouds);
+//Globe.add(Clouds);
 
 export const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
