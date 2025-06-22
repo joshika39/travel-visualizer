@@ -22,10 +22,12 @@
     "forceConsistentCasingInFileNames": true,
     "jsx": "preserve",
     "types": [
-      "vite/client"
+      "vite/client",
+      "node"
     ]
   },
   "include": [
+    "scripts/getAirports.ts",
     "src",
     "vite-env.d.ts"
   ]
