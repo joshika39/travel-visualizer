@@ -7,7 +7,12 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 import {getAirport} from "@/utils/airports";
 
 const countries: GeoData = countriesRaw as unknown as GeoData;
+
 let controlsEnabled = true;
+
+function enableControls(enabled: boolean) {
+  controlsEnabled = enabled;
+}
 
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -53,12 +58,9 @@ if (inputForm) {
     updateFlight(from, to);
   });
 
-  inputForm?.addEventListener("mouseenter", () => controlsEnabled = false);
-  inputForm?.addEventListener("mouseleave", () => controlsEnabled = true);
-
   inputForm.querySelectorAll("input, button").forEach((el) => {
-    el.addEventListener("focus", () => controlsEnabled = false);
-    el.addEventListener("blur", () => controlsEnabled = true);
+    el.addEventListener("focus", () => enableControls(false));
+    el.addEventListener("blur", () => enableControls(true));
   });
 }
 
