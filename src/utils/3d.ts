@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {Globe, scene} from "@/objects";
+import {Globe, markers, scene} from "@/objects";
 
 export function latLngToVector3(
   lat: number,
@@ -41,26 +41,39 @@ export function createGlobeArcCurveAccurate(
   return new THREE.CatmullRomCurve3(points);
 }
 
-export function addMarker(lat: number, lng: number, label?: string) {
+export function clearMarkers() {
+  for (const mesh of markers) {
+    scene.remove(mesh);
+    mesh.geometry.dispose();
+    if (mesh.material instanceof THREE.Material) {
+      mesh.material.dispose();
+    }
+  }
+  markers.length = 0;
+}
+
+export function addMarker(lat: number, lng: number) {
   const pos = latLngToVector3(lat, lng, Globe.getGlobeRadius());
 
   const marker = new THREE.Mesh(
     new THREE.SphereGeometry(0.2, 20, 8),
-    new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+    new THREE.MeshBasicMaterial({color: 0xff0000}),
   );
   marker.position.copy(pos);
   scene.add(marker);
+  markers.push(marker);
+}
 
-  if (!label) {
-    return;
-  }
+export function addLabel(lat: number, lng: number, text: string) {
+  const pos = latLngToVector3(lat, lng, Globe.getGlobeRadius());
+
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d")!;
   context.font = "18px Arial";
   context.fillStyle = "white";
-  context.fillText(label, 0, 18);
+  context.fillText(text, 0, 18);
   const texture = new THREE.CanvasTexture(canvas);
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture }));
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({map: texture}));
   sprite.scale.set(20, 10, 1);
   sprite.position.copy(
     pos

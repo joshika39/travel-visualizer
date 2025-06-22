@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {addMarker, createGlobeArcCurveAccurate} from "@/utils/3d";
+import {addMarker, clearMarkers, createGlobeArcCurveAccurate} from "@/utils/3d";
 import {camera, flyControls, Globe, renderer, scene} from "@/objects";
 import countriesRaw from "@/assets/countries.json";
 import {Airport, GeoData} from "@/types";
@@ -91,16 +91,7 @@ function updateFlight(from: Airport, to: Airport) {
       .polygonAltitude(() => 0.001);
   }
 
-  scene.children.forEach(child => {
-    if (child instanceof THREE.Mesh && child.geometry.type === 'SphereGeometry') {
-      scene.remove(child);
-      child.geometry.dispose();
-      if (child.material instanceof THREE.Material) {
-        child.material.dispose();
-      }
-    }
-  });
-
+  clearMarkers();
   addMarker(from.lat, from.lng);
   addMarker(to.lat, to.lng);
 
