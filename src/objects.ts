@@ -1,6 +1,9 @@
 import ThreeGlobe from "three-globe";
 import * as THREE from "three";
 import {TrackballControls} from "three/examples/jsm/controls/TrackballControls";
+import { FlyControls } from "three/examples/jsm/controls/FlyControls";
+import {PointerLockControls} from "three/examples/jsm/controls/PointerLockControls";
+
 
 const globe = {
   dev: '//cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg',
@@ -64,7 +67,21 @@ camera.aspect = window.innerWidth / window.innerHeight;
 camera.updateProjectionMatrix();
 camera.position.z = 500;
 
+// NOTE: Currently unused, but can be used for trackball controls
 export const tbControls = new TrackballControls(camera, renderer.domElement);
 tbControls.minDistance = 101;
 tbControls.rotateSpeed = 5;
 tbControls.zoomSpeed = 0.8;
+
+// NOTE: Currently unused, but can be used for free-flying camera controls
+export const flyControls = new FlyControls(camera, renderer.domElement);
+flyControls.movementSpeed = 100;
+flyControls.rollSpeed = Math.PI / 24;
+flyControls.autoForward = false;
+flyControls.dragToLook = true;
+
+export const controls = new PointerLockControls(camera, renderer.domElement);
+scene.add(controls.object);
+
+document.addEventListener("click", () => controls.lock());
+export const move = { forward: false, backward: false, left: false, right: false, up: false, down: false };

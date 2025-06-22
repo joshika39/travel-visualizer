@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import {addMarker, createGlobeArcCurveAccurate} from "@/utils/3d";
-import {camera, Clouds, Globe, renderer, scene, tbControls} from "@/objects";
+import {camera, Clouds, controls, flyControls, Globe, move, renderer, scene, tbControls} from "@/objects";
 import countriesRaw from "@/assets/countries.json";
 import {GeoData} from "@/types";
 
@@ -93,11 +93,45 @@ Globe.arcsData([
   .arcAltitude(arcAltitude)
   .arcStroke(0.2);
 
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+const clock = new THREE.Clock();
+
+const keys = new Set<string>();
+
+document.addEventListener("keydown", (e) => keys.add(e.code));
+document.addEventListener("keyup", (e) => keys.delete(e.code));
+
 function animate() {
-  tbControls.update();
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+  const rollSpeed = Math.PI / 4;
+
+  if (controls.isLocked) {
+    if (keys.has("ShiftLeft") || keys.has("ShiftRight")) {
+      if (keys.has("KeyQ")) {
+        camera.rotateZ(rollSpeed * delta);
+      }
+      if (keys.has("KeyE")) {
+        camera.rotateZ(-rollSpeed * delta);
+      }
+    }
+
+    direction.set(
+      Number(keys.has("KeyD")) - Number(keys.has("KeyA")),
+      Number(keys.has("KeyE") && !keys.has("ShiftLeft") && !keys.has("ShiftRight")) -
+      Number(keys.has("KeyQ") && !keys.has("ShiftLeft") && !keys.has("ShiftRight")),
+      Number(keys.has("KeyS")) - Number(keys.has("KeyW"))
+    ).normalize();
+
+    velocity.copy(direction).multiplyScalar(200 * delta);
+    controls.moveRight(velocity.x);
+    controls.moveForward(velocity.z);
+    controls.object.position.y += velocity.y;
+  }
+
   renderer.render(scene, camera);
   updatePlane();
-  requestAnimationFrame(animate);
 }
 
 addMarker(START.lat, START.lng, START.name);
