@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8"/>
     <title>Bundled Globe</title>
     <style>
       html,
@@ -10,10 +10,12 @@
         height: 100%;
         overflow: hidden;
       }
+
       #globeViz {
         width: 100vw;
         height: 100vh;
       }
+
       #loader {
         position: absolute;
         top: 0;
@@ -29,10 +31,18 @@
         font-size: 1.5rem;
       }
     </style>
-  </head>
-  <body>
-  <div id="loader">Loading globe...</div>
-  <div id="globeViz"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+</head>
+<body>
+<div id="loader">Loading globe...</div>
+<form id="airport-form" style="position: absolute; top: 10px; left: 10px; z-index: 1;">
+    <label for="from-iata">From:</label>
+    <input id="from-iata" placeholder="From (e.g. BUD)"/>
+    <label for="to-iata">To:</label>
+    <input id="to-iata" placeholder="To (e.g. NGO)"/>
+    <p id="error-message" style="color: red; display: none;"></p>
+    <button type="submit">Plot Flight</button>
+</form>
+<div id="globeViz"></div>
+<script type="module" src="/src/main.ts"></script>
+</body>
 </html>

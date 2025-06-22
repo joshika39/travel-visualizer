@@ -1,47 +1,24 @@
 import * as THREE from "three";
-import {addMarker, createGlobeArcCurveAccurate} from "@/utils/3d";
-import {camera, controls, flyControls, Globe, handlePointerControl, renderer, scene, tbControls} from "@/objects";
+import {addMarker, clearMarkers, createGlobeArcCurveAccurate} from "@/utils/3d";
+import {camera, flyControls, Globe, renderer, scene} from "@/objects";
 import countriesRaw from "@/assets/countries.json";
-import {GeoData} from "@/types";
+import {Airport, GeoData} from "@/types";
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
+import {getAirport} from "@/utils/airports";
 
 const countries: GeoData = countriesRaw as unknown as GeoData;
 
-const START = {lat: 47.473930228244406, lng: 19.07326116987136, name: "Budapest", country: "Hungary"};
-const DEST = {lat: 55.618265392816504, lng: 12.648949173439565, name: "Copenhagen", country: "Denmark"};
+let controlsEnabled = true;
 
-const arcAltitude = 0.02;
+function enableControls(enabled: boolean) {
+  controlsEnabled = enabled;
+}
 
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
-
-const targets = [
-  START.country,
-  DEST.country,
-]
-
-if (countries && countries.features) {
-  const filteredFeatures = countries.features.filter((f) =>
-    targets.includes(f.properties.ADMIN),
-  );
-
-  Globe.polygonsData(filteredFeatures)
-    .polygonCapColor(() => "rgba(133,200,0,0.44)")
-    .polygonStrokeColor(() => "#111")
-    .polygonAltitude(() => 0.001);
-}
-
-const arcCurve = createGlobeArcCurveAccurate(
-  START.lat,
-  START.lng,
-  DEST.lat,
-  DEST.lng,
-  Globe.getGlobeRadius(),
-  arcAltitude
-);
 
 const loader = new GLTFLoader();
 
@@ -53,12 +30,76 @@ loader.load('/assets/plane.glb', (gltf) => {
   scene.add(planeModel);
 });
 
+const inputForm = document.getElementById("airport-form");
+if (inputForm) {
+  inputForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const fromCode = (document.getElementById("from-iata") as HTMLInputElement).value.trim();
+    const toCode = (document.getElementById("to-iata") as HTMLInputElement).value.trim();
+
+    const from = getAirport(fromCode);
+    const to = getAirport(toCode);
+
+    if (!from || !to) {
+      const errorMessageElement = document.getElementById("error-message");
+      if (errorMessageElement) {
+        errorMessageElement.textContent = "Invalid IATA code(s)";
+        errorMessageElement.style.display = "block";
+      }
+      return;
+    }
+
+    const errorMessageElement = document.getElementById("error-message");
+    if (errorMessageElement) {
+      errorMessageElement.textContent = "";
+      errorMessageElement.style.display = "none";
+    }
+
+    updateFlight(from, to);
+  });
+
+  inputForm.querySelectorAll("input, button").forEach((el) => {
+    el.addEventListener("focus", () => enableControls(false));
+    el.addEventListener("blur", () => enableControls(true));
+  });
+}
+
+
+let arcCurve: THREE.Curve<THREE.Vector3> | null = null;
 
 let t = 0;
-const speed = 0.001;
+const speed = 0.002;
+const arcAltitude = 0.02;
+
+function updateFlight(from: Airport, to: Airport) {
+  arcCurve = createGlobeArcCurveAccurate(
+    from.lat, from.lng,
+    to.lat, to.lng,
+    Globe.getGlobeRadius(),
+    arcAltitude
+  );
+
+  if (countries && countries.features) {
+    const targets = [from.country, to.country];
+    const filteredFeatures = countries.features.filter((f) =>
+      targets.includes(f.properties.ADMIN),
+    );
+
+    Globe.polygonsData(filteredFeatures)
+      .polygonCapColor(() => "rgba(133,200,0,0.44)")
+      .polygonStrokeColor(() => "#111")
+      .polygonAltitude(() => 0.001);
+  }
+
+  clearMarkers();
+  addMarker(from.lat, from.lng);
+  addMarker(to.lat, to.lng);
+
+  t = 0;
+}
 
 function updatePlane() {
-  if (planeModel) {
+  if (planeModel && arcCurve) {
     const position = arcCurve.getPointAt(t);
     const tangent = arcCurve.getTangentAt(t);
 
@@ -75,12 +116,12 @@ const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
 
-  flyControls.update(clock.getDelta());
+  if (controlsEnabled) {
+    flyControls.update(clock.getDelta());
+  }
+
   renderer.render(scene, camera);
   updatePlane();
 }
-
-addMarker(START.lat, START.lng);
-addMarker(DEST.lat, DEST.lng);
 
 animate();

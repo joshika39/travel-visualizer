@@ -24,6 +24,8 @@ export const Clouds = new THREE.Mesh(
   new THREE.SphereGeometry(Globe.getGlobeRadius() * (1 + 0.004), 75, 75)
 );
 
+export const markers: THREE.Mesh[] = [];
+
 export function rotateClouds() {
   Clouds.rotation.y += (CLOUDS_ROTATION_SPEED * Math.PI) / 180;
   requestAnimationFrame(rotateClouds);
